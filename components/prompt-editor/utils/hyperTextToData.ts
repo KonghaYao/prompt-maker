@@ -9,10 +9,12 @@ export const hyperTextToData = (hyperText: string): GPTPromptElementType[] => {
     last = regex.exec(hyperText)
     if (last) {
       const end = last.index + last[0].length
+      const attributes = parseTagAttributes(last[0], 'gpt-prompt')
       collection.push({
+        id: attributes.id,
         type: 'gpt-prompt',
         position: { start: last.index, end },
-        attributes: parseTagAttributes(last[0], 'gpt-prompt'),
+        attributes,
         content: last[0]
       })
     }

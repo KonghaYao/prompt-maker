@@ -4,6 +4,7 @@ import { hyperTextToData } from './utils/hyperTextToData'
 export class GPTPromptController {
   private originText = ''
   inputs: GPTPromptElementType[] = []
+  data = []
   set text (text: string) {
     this.originText = text
     this.inputs = hyperTextToData(text)
@@ -15,5 +16,9 @@ export class GPTPromptController {
 
   constructor (hyperText: string) {
     this.text = hyperText
+  }
+
+  toString () {
+
   }
 }
