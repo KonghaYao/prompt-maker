@@ -1,5 +1,5 @@
 import { describe, beforeEach, it, expect } from 'vitest'
-import { GPTPromptController } from '../PromptEditor'
+import { GPTPromptController } from '../GPTPromptController'
 import { GPTPromptElementType } from '../GPTTextType'
 
 describe('GPTPromptController', () => {
