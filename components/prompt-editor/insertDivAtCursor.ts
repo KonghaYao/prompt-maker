@@ -10,15 +10,24 @@ export function insertDivAtCursor (id: string) {
   const span = document.createElement('span')
   span.id = id
   span.setAttribute('contenteditable', 'false')
-  span.textContent = 'xxx'
 
   // 在当前位置插入新的div元素
   if (node.nodeType === Node.TEXT_NODE) {
-    // 如果当前位置是文本节点，则将div元素插入到文本节点的父节点中
-    node.parentNode!.insertBefore(span, node.nextSibling)
+    const p = node.parentNode!
+    const content = node.textContent!
+    let side = node.nextSibling
+    if (offset < content.length) {
+      node.textContent = content!.slice(0, offset)
+      const rightText = new Text(content!.slice(offset))
+      p.insertBefore(rightText, node.nextSibling)
+      side = rightText
+    }
+    p.insertBefore(span, side)
+    selection.collapse(node, node.textContent!.length)
   } else {
     // 如果当前位置是元素节点，则将div元素插入到指定偏移量处
     node.insertBefore(span, node.childNodes[offset])
   }
+
   return span
 }

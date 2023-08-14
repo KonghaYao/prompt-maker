@@ -32,3 +32,5 @@ export type GPTPromptElementType = {
     position: { start: number; end: number };
     attributes: IInputType | Record<string, string>;
 };
+
+export type GPTInputDOM<T = IInputType> =T &{id:string, el:HTMLSpanElement}
