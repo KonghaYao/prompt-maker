@@ -6,12 +6,12 @@
     @input="inputText"
     @blur="inputBlur"
     @focus="inputFocus"
-    @keydown.stop.tab="tabEvent"
+    @keydown.self.stop.tab="tabEvent"
   />
 </template>
 <script setup lang="ts">
 const editor = ref<HTMLDivElement>()
-const props = defineProps<{
+defineProps<{
   modelValue: string;
 }>()
 

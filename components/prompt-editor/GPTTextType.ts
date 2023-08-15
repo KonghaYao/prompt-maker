@@ -22,7 +22,7 @@ export interface IInputNumber extends IInputCommonType<number> {
     default?: number
     value: number
 }
-type IInputType = IInputText | IInputNumber
+export type IInputType = IInputText | IInputNumber
 
 /** 文本转数据类型时，需要抽取的类型 */
 export type GPTPromptElementType = {
