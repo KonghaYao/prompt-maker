@@ -9,6 +9,7 @@
     "coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@element-plus/nuxt": "^1.0.5",
     "@headlessui/vue": "^1.7.15",
     "@nuxt/devtools": "^0.7.1",
     "@nuxtjs/color-mode": "^3.3.0",
@@ -31,6 +32,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "copy-to-clipboard": "^3.3.3",
     "happy-dom": "^10.9.0"
   }
 }

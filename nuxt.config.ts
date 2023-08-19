@@ -5,8 +5,8 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxtjs/color-mode',
     'nuxt-icon',
-    'nuxt-headlessui',
-    'nuxt-vitest'
+    'nuxt-vitest',
+    '@element-plus/nuxt'
   ],
   experimental: {
     reactivityTransform: true
