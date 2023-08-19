@@ -13,7 +13,7 @@
     </div>
 
     <div v-show="sideEditor" class="h-full w-32" />
-    <Teleport v-for="item in teleports" :to="item.el">
+    <Teleport v-for="item in teleports" :key="item.id" :to="item.el">
       <span
         class="inline-flex rounded-xl max-w-xs mx-2 text-white my-1 overflow-hidden"
         :style="{
@@ -34,9 +34,14 @@ import copy from 'copy-to-clipboard'
 import InputBox from './InputBox.vue'
 import { insertDivAtCursor } from './insertDivAtCursor'
 import type { GPTInputDOM, IInputType } from './GPTTextType'
+import { hyperTextToData } from './utils/hyperTextToData'
 
 defineProps<{
-  mode: 'edit'|'reader'
+  mode: 'edit'|'reader',
+  template?: string,
+}>()
+const emit = defineEmits<{
+  (e:'update:template', val:string):void
 }>()
 
 const sideEditor = ref(false)
@@ -50,27 +55,62 @@ const createLabel = () => {
     teleports.push({ el: span, id: randomId, type: 'string', value: text ?? '', hint: '', label: '选项' + teleports.length })
   }
 }
-/** realData 是用于 vue 渲染的数据类型 */
-const realData = ref<(string|IInputType)[]>([])
+/** promptData 是用于 vue 渲染的数据类型 */
+const promptData = ref<(string|GPTInputDOM)[]>([])
 const updateData = (data:(string|{id:string})[]) => {
-  realData.value = data.map((i) => {
+  promptData.value = data.map((i) => {
     if (typeof i === 'string') {
       return i
     } else {
-      return teleports.find(ii => i.id === ii.id) as IInputType
+      return teleports.find(ii => i.id === ii.id) as GPTInputDOM
     }
   })
+  emit('update:template', promptDataToStorageString(promptData.value))
+
+  console.log(storageStringToPromptData(promptDataToStorageString(promptData.value)))
 }
-const copyText = () => {
-  const text = promptDataToText(realData.value)
-  copy(text)
-}
-/** 最终将数据转化为文本 */
+const copyText = () => copy(promptDataToText(promptData.value))
+
+/** 最终将数据转化为可使用文本 */
 const promptDataToText = (realData:(string|IInputType)[]) => {
   return realData.map((i) => {
     if (typeof i === 'string') { return i }
     return i.value
   }).join('')
+}
+/** 最终将数据转化为存储文本 */
+const promptDataToStorageString = (realData:(string|GPTInputDOM)[]) => {
+  return realData.map((i) => {
+    if (typeof i === 'string') { return i }
+    return promptCellToString(i)
+  }).join('')
+}
+/** 存储文本转化为数据类型 */
+const storageStringToPromptData = (text:string) => {
+  const data = hyperTextToData(text)
+  const collection:(string|GPTInputDOM)[] = []
+  let lastEndPoint = 0
+
+  for (let index = 0; index < data.length; index++) {
+    const element = data[index]
+    if (lastEndPoint !== element.position.start) {
+      collection.push(text.slice(lastEndPoint, element.position.start))
+    }
+    lastEndPoint = element.position.end
+    collection.push(element.attributes as GPTInputDOM)
+  }
+  const tail = text.slice(lastEndPoint)
+  return tail ? [...collection, tail] : collection
+}
+
+const promptCellToString = (input:GPTInputDOM) => {
+  const item = document.createElement('gpt-prompt')
+  const exceptAttr :(keyof GPTInputDOM)[] = ['el']
+  Object.entries(input).forEach(([key, val]) => {
+    if (exceptAttr.includes(key as (keyof GPTInputDOM))) { return }
+    item.setAttribute(key, val)
+  })
+  return item.outerHTML
 }
 
 const stringToColor = (str:string) => {

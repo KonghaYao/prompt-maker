@@ -17,7 +17,6 @@ const props = defineProps<{
   editable: boolean
 }>()
 
-// eslint-disable-next-line func-call-spacing
 const emit = defineEmits<{
   (e: 'update:modelValue', val: string): void;
   (e: 'update', val:(string|{id:string})[]): void;
