@@ -1,3 +1,3 @@
 <template>
-  <PromptEditor />
+  <PromptEditor mode="edit" />
 </template>

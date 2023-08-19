@@ -2,7 +2,7 @@
   <div
     ref="editor"
     class="outline-none"
-    contenteditable="true"
+    :contenteditable="editable"
     @input="inputText"
     @blur="inputBlur"
     @focus="inputFocus"
@@ -10,9 +10,11 @@
   />
 </template>
 <script setup lang="ts">
+import { allowToRun, logAsyncState } from './allowToRun'
 const editor = ref<HTMLDivElement>()
-defineProps<{
+const props = defineProps<{
   modelValue: string;
+  editable: boolean
 }>()
 
 // eslint-disable-next-line func-call-spacing
@@ -22,28 +24,35 @@ const emit = defineEmits<{
   (e: 'tab'): void;
 }>()
 
-// 监听输入框内容
-const inputText = () => {
-  emit('update:modelValue', editor.value!.innerHTML)
+const allowToEdit = <T extends (...args: any[]) => any>(func: T) => {
+  const newFunc = allowToRun(func, () => props.editable)
+  return logAsyncState(newFunc, (p) => {
+    p.catch(e => console.log(e))
+  })
 }
 
-const tabEvent = (e: Event) => {
+// 监听输入框内容
+const inputText = allowToEdit(() => {
+  emit('update:modelValue', editor.value!.innerHTML)
+})
+
+const tabEvent = allowToEdit((e: Event) => {
   const key = e instanceof KeyboardEvent ? e.key : null
   if (key === 'Tab') {
     e.preventDefault()
     e.stopPropagation()
     emit('tab')
   }
-}
+})
 
 const isBlur = ref(true)
-const inputFocus = () => {
+const inputFocus = allowToEdit(() => {
   isBlur.value = false
-}
-const inputBlur = () => {
+})
+const inputBlur = allowToEdit(() => {
   isBlur.value = true
   updateData()
-}
+})
 
 const updateData = () => {
   const finalResult:(string|{id:string})[] = []

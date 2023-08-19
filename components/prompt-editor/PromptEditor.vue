@@ -3,8 +3,13 @@
     <header class="col-span-8">
       提示词编辑器
     </header>
+    <header>
+      <el-button type="primary" @click="copyText">
+        复制
+      </el-button>
+    </header>
     <div class="flex-1 h-full w-full col-span-8 bg-white rounded-md outline-none p-4 text-left">
-      <InputBox v-model="val" @tab="createLabel" @update="updateData" />
+      <InputBox v-model="val" :editable="mode==='edit'" @tab="createLabel" @update="updateData" />
     </div>
 
     <div v-show="sideEditor" class="h-full w-32" />
@@ -25,9 +30,15 @@
 </template>
 
 <script setup lang="ts">
+import copy from 'copy-to-clipboard'
 import InputBox from './InputBox.vue'
 import { insertDivAtCursor } from './insertDivAtCursor'
 import type { GPTInputDOM, IInputType } from './GPTTextType'
+
+defineProps<{
+  mode: 'edit'|'reader'
+}>()
+
 const sideEditor = ref(false)
 const val = ref('')
 const teleports = reactive<GPTInputDOM[]>([])
@@ -39,18 +50,22 @@ const createLabel = () => {
     teleports.push({ el: span, id: randomId, type: 'string', value: text ?? '', hint: '', label: '选项' + teleports.length })
   }
 }
-
+/** realData 是用于 vue 渲染的数据类型 */
+const realData = ref<(string|IInputType)[]>([])
 const updateData = (data:(string|{id:string})[]) => {
-  const realData:(string|IInputType)[] = data.map((i) => {
+  realData.value = data.map((i) => {
     if (typeof i === 'string') {
       return i
     } else {
       return teleports.find(ii => i.id === ii.id) as IInputType
     }
   })
-  console.log(promptDataToText(realData))
 }
-
+const copyText = () => {
+  const text = promptDataToText(realData.value)
+  copy(text)
+}
+/** 最终将数据转化为文本 */
 const promptDataToText = (realData:(string|IInputType)[]) => {
   return realData.map((i) => {
     if (typeof i === 'string') { return i }
