@@ -33,12 +33,13 @@
 import copy from 'copy-to-clipboard'
 import InputBox from './InputBox.vue'
 import { insertDivAtCursor } from './insertDivAtCursor'
-import type { GPTInputDOM, IInputType } from './GPTTextType'
-import { hyperTextToData } from './utils/hyperTextToData'
+import type { GPTInputDOM } from './GPTTextType'
+import { GPTPromptTransform } from './GPTPromptTransform'
 
-defineProps<{
+const props = defineProps<{
   mode: 'edit'|'reader',
   template?: string,
+  storageKey?:string
 }>()
 const emit = defineEmits<{
   (e:'update:template', val:string):void
@@ -65,53 +66,10 @@ const updateData = (data:(string|{id:string})[]) => {
       return teleports.find(ii => i.id === ii.id) as GPTInputDOM
     }
   })
-  emit('update:template', promptDataToStorageString(promptData.value))
-
-  console.log(storageStringToPromptData(promptDataToStorageString(promptData.value)))
-}
-const copyText = () => copy(promptDataToText(promptData.value))
-
-/** 最终将数据转化为可使用文本 */
-const promptDataToText = (realData:(string|IInputType)[]) => {
-  return realData.map((i) => {
-    if (typeof i === 'string') { return i }
-    return i.value
-  }).join('')
-}
-/** 最终将数据转化为存储文本 */
-const promptDataToStorageString = (realData:(string|GPTInputDOM)[]) => {
-  return realData.map((i) => {
-    if (typeof i === 'string') { return i }
-    return promptCellToString(i)
-  }).join('')
-}
-/** 存储文本转化为数据类型 */
-const storageStringToPromptData = (text:string) => {
-  const data = hyperTextToData(text)
-  const collection:(string|GPTInputDOM)[] = []
-  let lastEndPoint = 0
-
-  for (let index = 0; index < data.length; index++) {
-    const element = data[index]
-    if (lastEndPoint !== element.position.start) {
-      collection.push(text.slice(lastEndPoint, element.position.start))
-    }
-    lastEndPoint = element.position.end
-    collection.push(element.attributes as GPTInputDOM)
-  }
-  const tail = text.slice(lastEndPoint)
-  return tail ? [...collection, tail] : collection
+  emit('update:template', GPTPromptTransform.toStorageString(promptData.value))
 }
 
-const promptCellToString = (input:GPTInputDOM) => {
-  const item = document.createElement('gpt-prompt')
-  const exceptAttr :(keyof GPTInputDOM)[] = ['el']
-  Object.entries(input).forEach(([key, val]) => {
-    if (exceptAttr.includes(key as (keyof GPTInputDOM))) { return }
-    item.setAttribute(key, val)
-  })
-  return item.outerHTML
-}
+const copyText = () => copy(GPTPromptTransform.toText(promptData.value))
 
 const stringToColor = (str:string) => {
   let code = 0
