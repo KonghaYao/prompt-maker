@@ -9,7 +9,7 @@
       </el-button>
     </header>
     <div class="flex-1 h-full w-full col-span-8 bg-white rounded-md outline-none p-4 text-left">
-      <InputBox v-model="val" :editable="mode==='edit'" @tab="createLabel" @update="updateData" />
+      <InputBox v-model="htmlString" :editable="mode==='edit'" @tab="createLabel" @update="updateData" />
     </div>
 
     <div v-show="sideEditor" class="h-full w-32" />
@@ -46,7 +46,7 @@ const emit = defineEmits<{
 }>()
 
 const sideEditor = ref(false)
-const val = ref('')
+const htmlString = ref('')
 const teleports = reactive<GPTInputDOM[]>([])
 const createLabel = () => {
   const randomId = crypto.randomUUID()
@@ -58,6 +58,32 @@ const createLabel = () => {
 }
 /** promptData 是用于 vue 渲染的数据类型 */
 const promptData = ref<(string|GPTInputDOM)[]>([])
+
+const restoreData = (text:string) => {
+  const _promptData = GPTPromptTransform.storageStringInput(text)
+  promptData.value = _promptData
+  /** 需要恢复 dom 结构，保证 teleports 能够直接穿透找到元素进行挂载 */
+  const htmlText = _promptData.map((i) => {
+    if (typeof i === 'string') {
+      return i
+    } else {
+      const span = document.createElement('span')
+      span.id = i.id
+      span.contentEditable = 'false'
+      return span.outerHTML
+    }
+  }).join('')
+  htmlString.value = htmlText
+  onMounted(() => {
+    teleports.length = 0
+    const newTeleports = (promptData.value.filter(i => typeof i !== 'string') as GPTInputDOM[])
+    teleports.push(...newTeleports.map((i) => {
+      return { ...i, el: document.getElementById(i.id) } as GPTInputDOM
+    }))
+  })
+}
+props.template && restoreData(props.template)
+
 const updateData = (data:(string|{id:string})[]) => {
   promptData.value = data.map((i) => {
     if (typeof i === 'string') {

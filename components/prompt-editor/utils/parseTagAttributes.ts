@@ -16,8 +16,7 @@ export function parseTagAttributes (
   while ((attributeMatch = attributePattern.exec(attributeString))) {
     const attributeName = attributeMatch[1]
     const attributeValue = attributeMatch[2] || attributeMatch[3]
-    result[attributeName] = attributeValue
+    result[attributeName] = attributeValue ?? ''
   }
-
   return result
 }

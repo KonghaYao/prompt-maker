@@ -17,6 +17,12 @@ const props = defineProps<{
   editable: boolean
 }>()
 
+const restoreHTML = () => editor.value ? (editor.value!.innerHTML = props.modelValue) : ('')
+onMounted(() => {
+  restoreHTML()
+})
+
+restoreHTML()
 const emit = defineEmits<{
   (e: 'update:modelValue', val: string): void;
   (e: 'update', val:(string|{id:string})[]): void;
